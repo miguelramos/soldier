@@ -1,0 +1,14 @@
+{
+  "name": "@miguelramos/soldier-sdk",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start:dev": "lerna run watch --parallel watch",
+    "test": "lerna run test --parallel"
+  },
+  "devDependencies": {
+    "lerna": "^3.4.0"
+  }
+}
