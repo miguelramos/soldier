@@ -1,0 +1,13 @@
+language: node_js
+sudo: false
+
+cache:
+  timeout: 1000
+  directories:
+    - $HOME/.npm
+
+install:
+  - yarn install
+
+script:
+  - yarn run test
