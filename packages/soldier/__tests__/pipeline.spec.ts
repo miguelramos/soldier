@@ -57,7 +57,7 @@ describe('> Pipeline', () => {
       () => {
         const period = Date.now() - startTime;
 
-        expect(period > 1000).toBeTruthy();
+        expect(period > 800).toBeTruthy();
         done();
       }
     );
