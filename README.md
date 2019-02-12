@@ -1,6 +1,6 @@
 # Reactive Soldier
 
-[![Build Status](https://travis-ci.org/miguelramos/soldier.svg?branch=master)](https://travis-ci.org/miguelramos/soldier)
+[![Build Status](https://travis-ci.com/miguelramos/soldier.svg?branch=master)](https://travis-ci.com/miguelramos/soldier)
 [![Coverage Status](https://coveralls.io/repos/github/miguelramos/soldier/badge.svg?branch=master)](https://coveralls.io/github/miguelramos/soldier?branch=master)
 [![npm version](https://badge.fury.io/js/soldier.svg)](http://badge.fury.io/js/soldier)
 
