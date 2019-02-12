@@ -1,29 +1,38 @@
 import { Pipeline } from './pipeline';
-import { Job, JobDescriptor } from './job';
+import { Job } from './job';
 import { JobAttributes } from './typings';
-import { interval, Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
+// import { interval, Subscription } from 'rxjs';
+// import { tap } from 'rxjs/operators';
 
 const pipeline = new Pipeline();
 
 pipeline.queue('HELLO', (job: Job, descriptor: JobAttributes) => {
   //job.complete();
-  if (descriptor.repeate) {
+  /*if (descriptor.repeate) {
     const int: Subscription = interval(descriptor.repeate)
-      .pipe(
-        tap(() =>
-          job.next(JobDescriptor.create('running', descriptor.data, descriptor))
-        )
-      )
+      .pipe(tap(() => job.next(JobDescriptor.create(job.descriptor))))
       .subscribe(_ => int.unsubscribe());
     console.log(job, descriptor);
-  }
+  }*/
+  console.log(job, descriptor);
 });
 
-pipeline.dispatch('HELLO', {
-  data: 'Great balls of fire',
-  delay: 2000,
-  repeate: 5000
+const task = pipeline.dispatch('HELLO', {
+  data: 'Great balls of fire'
 });
 
-//setTimeout(() => pipeline.stop(), 5000);
+if (task) {
+  task.subscribe(
+    _success => {
+      console.log('success');
+    },
+    _error => {
+      console.log('error');
+    },
+    () => {
+      console.log('complete');
+    }
+  );
+}
+
+setTimeout(() => pipeline.stop(), 20000);

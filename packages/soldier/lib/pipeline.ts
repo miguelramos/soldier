@@ -1,41 +1,50 @@
-import { ObservableMap } from './utils';
-import { Job, JobDescriptor } from './job';
-import { JobAttributes } from './typings';
-import { takeUntil, delay, tap, defaultIfEmpty } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
+
+import { ObservableMap } from './utils';
+import { JobAttributes } from './typings';
+import { Job, JobDescriptor } from './job';
 
 export class Pipeline {
   private subject$ = new Subject();
   private pipes = new ObservableMap<string, Job>();
 
-  async queue(key: string, worker: Function) {
+  async queue(key: string, worker: (job: Job, attrs: JobAttributes) => void) {
     return this.pipes.set(key, this.createJob(worker));
   }
 
-  async dispatch(
-    key: string,
-    attrs: JobAttributes = {
-      delay: 0,
-      disable: false,
-      data: {},
-      repeate: 0
-    }
-  ) {
+  get(key: string) {
+    return this.pipes.get(key);
+  }
+
+  dispatch(key: string, attrs?: JobAttributes) {
     const job = this.pipes.get(key);
 
-    if (job) {
-      job
-        .pipe(
-          attrs.delay && attrs.delay > 0
-            ? delay(attrs.delay)
-            : defaultIfEmpty(job.descriptor),
-          tap(() => job.operation.call(job.operation, job, attrs)),
-          takeUntil(this.subject$)
-        )
-        .subscribe();
+    attrs = Object.assign(
+      {},
+      {
+        delay: 0,
+        disable: false,
+        data: {},
+        repeate: -1
+      },
+      attrs
+    );
 
-      job.next(JobDescriptor.create('running', attrs.data, attrs));
+    if (job && attrs.disable !== true) {
+      job.set(JobDescriptor.create('waiting', attrs.data, attrs));
+
+      return job.schedule().pipe(
+        tap(() => job.operation.call(job.operation, job, attrs)),
+        takeUntil(this.subject$)
+      );
+    } else if (job) {
+      return job.asObservable();
     }
+
+    throw new Error(
+      `Job: ${key} is not queued. Please assign to a queue first`
+    );
   }
 
   queues() {

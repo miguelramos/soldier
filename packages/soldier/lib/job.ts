@@ -1,4 +1,14 @@
-import { Subject } from 'rxjs';
+import {
+  Subject,
+  timer,
+  Observable,
+  Operator,
+  SchedulerLike,
+  asyncScheduler,
+  SchedulerAction,
+  Subscription
+} from 'rxjs';
+
 import { JobAttributes, StatusDescriptor } from './typings';
 
 /**
@@ -101,6 +111,8 @@ export class Job extends Subject<JobDescriptor> {
 
   //private _hooks = ['onInit', 'onChange', 'onFinish'];
   operation: Function = TaskNoopOperation;
+  schedulerSubscription!: Subscription;
+
   private _args = [];
 
   task(fn: Function, ...args: any) {
@@ -145,5 +157,37 @@ export class Job extends Subject<JobDescriptor> {
 
   set(descriptor: JobDescriptor | StatusDescriptor, value?: any, detail?: any) {
     this.descriptor.set(descriptor, value, detail);
+  }
+
+  schedule() {
+    const scheduler = asyncScheduler;
+
+    const delay = this.descriptor.details.delay || 0;
+    //const period = this.descriptor.details.repeate || -1;
+    const self = this;
+
+    this.schedulerSubscription = scheduler.schedule(
+      function(this: SchedulerAction<Job>, state?: Job) {
+        if (state) {
+          state.next(self.descriptor.value);
+
+          if (state.closed) {
+            return;
+          } else if (
+            state.descriptor.details &&
+            state.descriptor.details.repeate === -1
+          ) {
+            return state.complete();
+          }
+
+          const period = state.descriptor.details.repeate || -1;
+          this.schedule(state, period);
+        }
+      },
+      delay,
+      self
+    );
+
+    return this;
   }
 }
