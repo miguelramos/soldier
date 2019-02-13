@@ -86,12 +86,12 @@ export class Job extends Subject<JobDescriptor> {
             return;
           } else if (
             state.descriptor.details &&
-            state.descriptor.details.repeate === -1
+            state.descriptor.details.repeatInterval === -1
           ) {
             return state.complete();
           }
 
-          const period = state.descriptor.details.repeate || -1;
+          const period = state.descriptor.details.repeatInterval || -1;
           this.schedule(state, period);
         }
       },

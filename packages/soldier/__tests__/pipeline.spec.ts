@@ -9,8 +9,8 @@ describe('> Pipeline', () => {
     pipeline = new Pipeline();
   });
 
-  it('# Should register queue in pipeline.', done => {
-    pipeline.queues().subscribe(pipes => {
+  it('# Should register queue in pipeline.', (done) => {
+    pipeline.queues().subscribe((pipes) => {
       for (const pipe of pipes) {
         expect(pipe[0] === 'my queue').toBeTruthy();
         done();
@@ -20,28 +20,32 @@ describe('> Pipeline', () => {
     pipeline.queue('my queue', console.log);
   });
 
-  it('# Should dispatch single task', done => {
+  it('# Should dispatch single task', (done) => {
     pipeline.queue('TASK', (job: Job, _attrs?: JobAttributes) => {
       expect(job.descriptor.status === 'running').toBeTruthy();
     });
 
-    const job = pipeline.get('TASK') as Job;
+    const worker = pipeline.get('TASK') as Job;
 
     const task = pipeline.dispatch('TASK', {
       delay: 0
     });
 
     task.subscribe(
-      _job => {},
-      _error => {},
+      (attrs) => {
+        expect(attrs.details.delay === 0).toBeTruthy();
+      },
+      (error) => {
+        throw error;
+      },
       () => {
-        expect(job.descriptor.status === 'complete').toBeTruthy();
+        expect(worker.descriptor.status === 'complete').toBeTruthy();
         done();
       }
     );
   });
 
-  it('# Should delay the task to run', done => {
+  it('# Should delay the task to run', (done) => {
     pipeline.queue('TASK', (job: Job, _attrs?: JobAttributes) => {
       expect(job.descriptor.details.delay === 1000).toBeTruthy();
     });
@@ -52,8 +56,12 @@ describe('> Pipeline', () => {
     });
 
     task.subscribe(
-      _job => {},
-      _error => {},
+      (attrs) => {
+        expect(attrs.status === 'running').toBeTruthy();
+      },
+      (error) => {
+        throw error;
+      },
       () => {
         const period = Date.now() - startTime;
 
@@ -63,7 +71,7 @@ describe('> Pipeline', () => {
     );
   });
 
-  it('# Should queue stop an interval', done => {
+  it('# Should queue stop an interval', (done) => {
     let count = 0;
 
     pipeline.queue('TASK', (job: Job, _attrs?: JobAttributes) => {
@@ -71,17 +79,21 @@ describe('> Pipeline', () => {
       count++;
     });
 
-    const job = pipeline.get('TASK') as Job;
+    const worker = pipeline.get('TASK') as Job;
 
     const task = pipeline.dispatch('TASK', {
-      repeate: 1000
+      repeatInterval: 1000
     });
 
     const subscription = task.subscribe(
-      _job => {},
-      _error => {},
+      (attrs) => {
+        expect(attrs.details.repeatInterval === 1000).toBeTruthy();
+      },
+      (error) => {
+        throw error;
+      },
       () => {
-        job.schedulerSubscription.unsubscribe();
+        worker.schedulerSubscription.unsubscribe();
 
         subscription.unsubscribe();
         subscription.remove(subscription);
@@ -105,7 +117,7 @@ describe('> Pipeline', () => {
     try {
       await pipeline.queue('NOT_A_FUNCTION', 'hello' as any);
     } catch (e) {
-      expect((<Error>e).message).toEqual(
+      expect(e.message).toEqual(
         'Invalid type for task. Please use a function.'
       );
     }
