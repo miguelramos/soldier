@@ -3,21 +3,25 @@ import { takeUntil, tap } from 'rxjs/operators';
 
 import { ObservableMap } from './utils';
 import { JobAttributes } from './typings';
-import { Job, JobDescriptor } from './job';
+import { Job } from './job';
+import { JobDescriptor } from './job-descriptor';
 
 export class Pipeline {
   private subject$ = new Subject();
   private pipes = new ObservableMap<string, Job>();
 
-  async queue(key: string, worker: (job: Job, attrs: JobAttributes) => void) {
+  public async queue(
+    key: string,
+    worker: (job: Job, attrs?: JobAttributes) => void
+  ) {
     return this.pipes.set(key, this.createJob(worker));
   }
 
-  get(key: string) {
+  public get(key: string) {
     return this.pipes.get(key);
   }
 
-  dispatch(key: string, attrs?: JobAttributes) {
+  public dispatch(key: string, attrs?: JobAttributes) {
     const job = this.pipes.get(key);
 
     attrs = Object.assign(
@@ -47,15 +51,15 @@ export class Pipeline {
     );
   }
 
-  queues() {
+  public queues() {
     return this.pipes.listener();
   }
 
-  stop() {
+  public stop() {
     this.subject$.next(true);
   }
 
-  private createJob(task: Function) {
+  private createJob(task: (job: Job, attrs?: JobAttributes) => void) {
     return new Job().task(task);
   }
 }

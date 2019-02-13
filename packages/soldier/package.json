@@ -9,7 +9,7 @@
     "rxjs"
   ],
   "author": "Miguel Ramos <miguel.marques.ramos@gmail.com>",
-  "homepage": "",
+  "homepage": "https://github.com/miguelramos/soldier",
   "license": "MIT",
   "main": "lib/soldier.js",
   "directories": {
@@ -22,20 +22,22 @@
   "scripts": {
     "watch": "nodemon -e ts -w ./lib -x npm run watch:serve",
     "watch:serve": "node --inspect ./node_modules/.bin/ts-node lib/index.ts",
-    "test": "jest"
+    "lint": "tslint --project \"./tsconfig.json\"",
+    "test": "npm run lint && jest"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
-  },
-  "dependencies": {
+    "nodemon": "^1.18.10",
+    "ts-jest": "^23.10.5",
+    "ts-lint": "^4.5.1",
+    "ts-node": "^8.0.2",
+    "tslint": "^5.12.1",
     "@types/jest": "^24.0.0",
     "@types/node": "^10.12.24",
     "jest": "23.6.0",
     "prettier": "^1.16.4",
-    "rxjs": "^6.4.0",
-    "ts-jest": "^23.10.5",
-    "ts-lint": "^4.5.1",
-    "ts-node": "^8.0.2",
     "typescript": "^3.3.3"
+  },
+  "dependencies": {
+    "rxjs": "^6.4.0"
   }
 }
