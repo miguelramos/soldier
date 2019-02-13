@@ -55,7 +55,7 @@ export class JobDescriptor {
    */
   public details: JobAttributes = {
     data: {},
-    repeate: 0,
+    repeatInterval: 0,
     delay: 0,
     disable: false
   };

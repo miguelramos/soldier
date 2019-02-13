@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { takeUntil, tap, timeout, retry, defaultIfEmpty } from 'rxjs/operators';
 
 import { ObservableMap } from './utils';
 import { JobAttributes } from './typings';
@@ -24,24 +24,35 @@ export class Pipeline {
   public dispatch(key: string, attrs?: JobAttributes) {
     const job = this.pipes.get(key);
 
-    attrs = Object.assign(
+    const settings: JobAttributes = Object.assign(
       {},
       {
         delay: 0,
         disable: false,
         data: {},
-        repeate: -1
+        repeatInterval: -1,
+        retry: 0,
+        timeout: 0
       },
       attrs
     );
 
-    if (job && attrs.disable !== true) {
-      job.set(JobDescriptor.create('waiting', attrs.data, attrs));
+    if (job && settings.disable !== true) {
+      job.set(JobDescriptor.create('waiting', settings.data, settings));
 
-      return job.schedule().pipe(
-        tap(() => job.operation.call(job.operation, job, attrs)),
+      const observable = job.schedule().pipe(
+        retry(settings.retry),
+        tap(() => job.operation.call(job.operation, job, settings)),
         takeUntil(this.subject$)
       );
+
+      if ((settings.repeatInterval as number) < 0) {
+        observable.pipe(
+          timeout((settings.timeout as number) + (settings.delay as number))
+        );
+      }
+
+      return observable;
     } else if (job) {
       return job.asObservable();
     }
