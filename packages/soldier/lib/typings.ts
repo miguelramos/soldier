@@ -4,5 +4,5 @@ export interface JobAttributes {
   disable?: boolean;
   delay?: number;
   repeate?: number;
-  data?: Object;
+  data?: object;
 }

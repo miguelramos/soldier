@@ -4,15 +4,15 @@ import { cpus, freemem, totalmem } from 'os';
 let prevTimes = getCpuTimes();
 
 export function getCpuTimes() {
-  const processors = cpus(),
-    times = {
-      user: 0,
-      sys: 0,
-      nice: 0,
-      idle: 0
-    };
+  const processors = cpus();
+  const times = {
+    user: 0,
+    sys: 0,
+    nice: 0,
+    idle: 0
+  };
 
-  processors.forEach(function(cpu) {
+  processors.forEach((cpu) => {
     times.user += cpu.times.user;
     times.sys += cpu.times.sys;
     times.nice += cpu.times.nice;
@@ -23,12 +23,12 @@ export function getCpuTimes() {
 }
 
 export function getCpuUsage() {
-  const times = getCpuTimes(),
-    user = prevTimes.user - times.user,
-    sys = prevTimes.sys - times.sys,
-    nice = prevTimes.nice - times.nice,
-    idle = prevTimes.idle - times.idle,
-    usage = user + sys + nice;
+  const times = getCpuTimes();
+  const user = prevTimes.user - times.user;
+  const sys = prevTimes.sys - times.sys;
+  const nice = prevTimes.nice - times.nice;
+  const idle = prevTimes.idle - times.idle;
+  const usage = user + sys + nice;
 
   prevTimes = times;
 
@@ -73,13 +73,13 @@ export class ObservableMap<K, V> extends Map<K, V> {
     this.subject = new Subject();
   }
 
-  set(key: K, value: V) {
+  public set(key: K, value: V) {
     super.set(key, value);
     this.subject.next(super.entries());
     return this;
   }
 
-  delete(key: K) {
+  public delete(key: K) {
     const del = super.delete(key);
 
     this.subject.next(super.entries());
@@ -87,20 +87,20 @@ export class ObservableMap<K, V> extends Map<K, V> {
     return del;
   }
 
-  get(key: K) {
+  public get(key: K) {
     return super.get(key);
   }
 
-  clear() {
+  public clear() {
     super.clear();
     this.subject.next(super.entries());
   }
 
-  has(key: K) {
+  public has(key: K) {
     return super.has(key);
   }
 
-  listener() {
+  public listener() {
     return this.subject;
   }
 
