@@ -14,7 +14,7 @@
   },
   "author": "Miguel Ramos <miguel.marques.ramos@gmail.com>",
   "homepage": "https://github.com/miguelramos/soldier",
-  "license": "MIT",
+  "license": "Apache License 2.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "directories": {

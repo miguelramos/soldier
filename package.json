@@ -1,6 +1,7 @@
 {
   "name": "@miguelramos/soldier-sdk",
   "private": true,
+  "license": "Apache License 2.0",
   "workspaces": [
     "packages/*"
   ],
