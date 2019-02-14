@@ -8,34 +8,42 @@
     "typescript",
     "rxjs"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:miguelramos/soldier.git"
+  },
   "author": "Miguel Ramos <miguel.marques.ramos@gmail.com>",
   "homepage": "https://github.com/miguelramos/soldier",
   "license": "MIT",
-  "main": "lib/soldier.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
   },
   "files": [
-    "lib"
+    "dist"
   ],
   "scripts": {
     "watch": "nodemon -e ts -w ./lib -x npm run watch:serve",
     "watch:serve": "node --inspect ./node_modules/.bin/ts-node lib/index.ts",
     "lint": "tslint --project \"./tsconfig.json\"",
-    "test": "npm run lint && jest"
+    "format": "prettier --write \"lib/**/*.ts\" \"dist/**/*.js\"",
+    "test": "npm run lint && jest",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/jest": "^24.0.0",
     "@types/node": "^10.12.24",
-    "jest": "23.6.0",
     "coveralls": "^3.0.2",
+    "jest": "23.6.0",
     "nodemon": "^1.18.10",
     "prettier": "^1.16.4",
     "ts-jest": "^23.10.5",
     "ts-lint": "^4.5.1",
     "ts-node": "^8.0.2",
     "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.3.3"
   },
   "dependencies": {
