@@ -10,7 +10,8 @@
       "verifyAccess": true,
       "message": "chore(release): publish %v",
       "ignoreChanges": ["*.md", "tests/*"],
-      "yes": true
+      "yes": true,
+      "allowBranch": "master"
     }
   }
 }
