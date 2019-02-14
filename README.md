@@ -9,10 +9,6 @@ Reactive Soldier is an rxjs library for scheduling task to run on present or in 
 
 [Apache 2.0 License](LICENSE)
 
-## Installation and Usage
-
-Not yet published in npm!
-
 ### Development
 
 Clone the repo an run install with yarn (MANDATORY). This repo is generated with lerna and yarn workspaces.
