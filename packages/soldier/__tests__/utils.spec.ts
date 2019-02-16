@@ -12,7 +12,7 @@ describe(' > Utils', () => {
 
   it('# Should get cpu percent', () => {
     const cpuUsage = getCpuUsage();
-    console.log(cpuUsage);
+    
     expect(cpuUsage >= 0).toBeTruthy();
   });
 
