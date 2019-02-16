@@ -13,7 +13,7 @@ describe(' > Utils', () => {
   it('# Should get cpu percent', () => {
     const cpuUsage = getCpuUsage();
     
-    expect(cpuUsage >= 0).toBeTruthy();
+    expect(isNaN(cpuUsage) ? true : cpuUsage >= 0).toBeTruthy();
   });
 
   it('# Should get memory percent', () => {
