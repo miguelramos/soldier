@@ -35,7 +35,7 @@ export function getCpuUsage() {
   return (usage / (usage + idle)) * 100;
 }
 
-export function memoryPercent() {
+export function getMemoryUsage() {
   return (freemem() / totalmem()) * 100;
 }
 

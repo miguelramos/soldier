@@ -30,7 +30,8 @@
     "lint": "tslint --project \"./tsconfig.json\"",
     "format": "prettier --write \"lib/**/*.ts\" \"dist/**/*.js\"",
     "test": "npm run lint && jest",
-    "build": "tsc"
+    "build": "tsc",
+    "doc": "typedoc"
   },
   "devDependencies": {
     "@types/jest": "^24.0.0",
@@ -47,7 +48,8 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
-    "rxjs": "^6.4.0"
+    "rxjs": "^6.4.0",
+    "typedoc": "^0.14.2"
   },
   "publishConfig": {
     "access": "public"
