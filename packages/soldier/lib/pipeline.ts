@@ -1,27 +1,72 @@
-import { Subject } from 'rxjs';
-import { takeUntil, tap, timeout, retry, defaultIfEmpty } from 'rxjs/operators';
+import { Subject, Observable } from 'rxjs';
+import { takeUntil, tap, timeout, retry } from 'rxjs/operators';
 
+import { Job } from './job';
 import { ObservableMap } from './utils';
 import { JobAttributes } from './typings';
-import { Job } from './job';
 import { JobDescriptor } from './job-descriptor';
 
+/**
+ * Pipeline register and control jobs
+ *
+ * @export
+ * @class Pipeline
+ */
 export class Pipeline {
+  /**
+   * Subject observable to perform actions
+   * on pipeline and job.
+   *
+   * @private
+   * @memberof Pipeline
+   */
   private subject$ = new Subject();
+
+  /**
+   * Memory repo for jobs
+   * 
+   * TODO: Convert in adaptor to future integrations
+   *
+   * @private
+   * @memberof Pipeline
+   */
   private pipes = new ObservableMap<string, Job>();
 
-  public async queue(
+  /**
+   * Register and create job to run
+   *
+   * @param {string} key
+   * @param {(job: Job, attrs?: JobAttributes) => void} worker
+   * @returns {ObservableMap<string, Job>}
+   * @memberof Pipeline
+   */
+  public queue(
     key: string,
     worker: (job: Job, attrs?: JobAttributes) => void
-  ) {
+  ): ObservableMap<string, Job> {
     return this.pipes.set(key, this.createJob(worker));
   }
 
-  public get(key: string) {
+  /**
+   * Get a registered job
+   *
+   * @param {string} key
+   * @returns {(Job|undefined)}
+   * @memberof Pipeline
+   */
+  public get(key: string): Job|undefined {
     return this.pipes.get(key);
   }
 
-  public dispatch(key: string, attrs?: JobAttributes) {
+  /**
+   * Dispatch a job to do is work
+   *
+   * @param {string} key
+   * @param {JobAttributes} [attrs]
+   * @returns {Observable<JobDescriptor>}
+   * @memberof Pipeline
+   */
+  public dispatch(key: string, attrs?: JobAttributes): Observable<JobDescriptor> {
     const job = this.pipes.get(key);
 
     const settings: JobAttributes = Object.assign(
@@ -62,15 +107,34 @@ export class Pipeline {
     );
   }
 
-  public queues() {
+  /**
+   * Get a Map of registered queues
+   *
+   * @returns {Subject<IterableIterator<[string, Job]>>}
+   * @memberof Pipeline
+   */
+  public queues(): Subject<IterableIterator<[string, Job]>> {
     return this.pipes.listener();
   }
 
-  public stop() {
+  /**
+   * Stop queue to perform job
+   *
+   * @memberof Pipeline
+   */
+  public stop(): void {
     this.subject$.next(true);
   }
 
-  private createJob(task: (job: Job, attrs?: JobAttributes) => void) {
+  /**
+   * Creates a job
+   *
+   * @private
+   * @param {(job: Job, attrs?: JobAttributes) => void} task
+   * @returns {Job}
+   * @memberof Pipeline
+   */
+  private createJob(task: (job: Job, attrs?: JobAttributes) => void): Job {
     return new Job().task(task);
   }
 }
