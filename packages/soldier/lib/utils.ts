@@ -124,3 +124,40 @@ export class ObservableMap<K, V> extends Map<K, V> {
     setImmediate(() => this.next(iter, observer, value));
   }*/
 }
+
+export function isType(s: any,o: any) {
+  // tslint:disable-next-line:triple-equals
+  return typeof s == o;
+}
+
+export function isString(s: string) {
+  return isType(s, 'string');
+}
+
+export function isObject(f: object) {
+  return !!f && isType(f, 'object');
+}
+
+export function isNode(n: any) {
+  return n && n['nodeType'];
+}
+
+export function isNumber(n: number) {
+  return isType(n, 'number');
+}
+
+export function isDate(n: Date) {
+  return isObject(n) && !!n['getDay'];
+}
+
+export function isBool(n: boolean) {
+  return n === true || n === false;
+}
+
+export function isValue(n: any) {
+  const type = typeof n;
+  // tslint:disable:triple-equals
+  return type == 'object'
+    ? !!(n && n['getDay']) :
+    (type == 'string' || type == 'number' || isBool(n));
+}

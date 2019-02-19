@@ -48,6 +48,7 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
+    "human-interval": "^0.1.6",
     "rxjs": "^6.4.0",
     "typedoc": "^0.14.2"
   },

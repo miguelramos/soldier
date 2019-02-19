@@ -2,7 +2,7 @@ import { Subject, Observable } from 'rxjs';
 import { takeUntil, tap, timeout, retry } from 'rxjs/operators';
 
 import { Job } from './job';
-import { ObservableMap } from './utils';
+import { ObservableMap, isNumber } from './utils';
 import { JobAttributes } from './typings';
 import { JobDescriptor } from './job-descriptor';
 
@@ -91,7 +91,7 @@ export class Pipeline {
         takeUntil(this.subject$)
       );
 
-      if ((settings.repeatInterval as number) < 0) {
+      if (isNumber(settings.repeatInterval as number) && (settings.repeatInterval as number) < 0) {
         observable.pipe(
           timeout((settings.timeout as number) + (settings.delay as number))
         );
