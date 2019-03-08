@@ -144,7 +144,7 @@ export class Job extends Subject<JobDescriptor> {
           }
 
           const period = state.descriptor.details.repeatInterval || -1;
-          this.schedule(state, period);
+          this.schedule(state, period as number);
         }
       },
       delay,

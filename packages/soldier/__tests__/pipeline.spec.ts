@@ -122,4 +122,40 @@ describe('> Pipeline', () => {
       );
     }
   });
+
+  it('# Should convert repeat interval human interval', done => {
+    let count = 0;
+
+    pipeline.queue('TASK', (job: Job, _attrs?: JobAttributes) => {
+      expect(job.descriptor.status === 'running').toBeTruthy();
+      count++;
+    });
+
+    const worker = pipeline.get('TASK') as Job;
+
+    const task = pipeline.dispatch('TASK', {
+      repeatInterval: 'one second'
+    });
+
+    const subscription = task.subscribe(
+      (attrs) => {
+        expect(attrs.details.repeatInterval === 1000).toBeTruthy();
+      },
+      (error) => {
+        throw error;
+      },
+      () => {
+        worker.schedulerSubscription.unsubscribe();
+
+        subscription.unsubscribe();
+        subscription.remove(subscription);
+
+        expect(count === 5).toBeTruthy();
+
+        done();
+      }
+    );
+
+    setTimeout(() => pipeline.stop(), 5000);
+  }, 6000);
 });
