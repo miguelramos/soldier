@@ -2,8 +2,8 @@ import { Subject, Observable } from 'rxjs';
 import { takeUntil, tap, timeout, retry } from 'rxjs/operators';
 
 import { Job } from './job';
-import { ObservableMap, isNumber } from './utils';
 import { JobAttributes } from './typings';
+import { ObservableMap, isNumber } from './utils';
 import { JobDescriptor } from './job-descriptor';
 
 /**
