@@ -1,4 +1,5 @@
-# Reactive Soldier
+<img src="docs/soldier-logo.svg" alt="Soldier Logo" width="86" height="86"> Reactive Soldier
+====
 
 [![Author](https://img.shields.io/badge/author-miguelramos-blue.svg)](https://twitter.com/miguelonspring)
 [![Build Status](https://travis-ci.com/miguelramos/soldier.svg?branch=master)](https://travis-ci.com/miguelramos/soldier)

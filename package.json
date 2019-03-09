@@ -9,6 +9,7 @@
     "lerna": "lerna",
     "start:dev": "lerna run watch --parallel watch",
     "test": "lerna run test --parallel",
+    "doc": "lerna run doc",
     "build": "lerna run build",
     "format": "lerna run format",
     "lerna:version": "lerna version prerelease --preid beta && yarn run lerna:postversion",

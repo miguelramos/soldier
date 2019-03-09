@@ -25,5 +25,9 @@
     "lib": ["es2015", "es2016", "es2017"]
   },
   "include": ["lib/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "typedocOptions": {
+    "mode": "modules",
+    "out": "../../docs/soldier"
+  }
 }

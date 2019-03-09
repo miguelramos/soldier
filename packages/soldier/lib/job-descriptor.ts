@@ -1,4 +1,8 @@
 import { JobAttributes, StatusDescriptor } from './typings';
+import { isString } from './utils';
+
+// tslint:disable-next-line:no-var-requires
+const hi = require('human-interval');
 
 /**
  * Class to rule job internal data.
@@ -85,6 +89,10 @@ export class JobDescriptor {
       this.status = descriptor;
       this.value = value;
       this.details = detail ? detail : this.details;
+    }
+
+    if (this.details.repeatInterval && isString(this.details.repeatInterval as string)) {
+      this.details.repeatInterval = hi(this.details.repeatInterval);
     }
   }
 }

@@ -11,6 +11,13 @@ TaskNoopOperation.prototype.onInit = () => {};
 TaskNoopOperation.prototype.onChange = () => {};
 TaskNoopOperation.prototype.onFinish = () => {};*/
 
+/**
+ * Task assignment to function to run
+ *
+ * @export
+ * @class Job
+ * @extends {Subject<JobDescriptor>}
+ */
 export class Job extends Subject<JobDescriptor> {
   public descriptor: JobDescriptor = JobDescriptor.create('waiting', null);
 
@@ -23,7 +30,15 @@ export class Job extends Subject<JobDescriptor> {
   // tslint:disable-next-line:no-empty
   public operation: (job: Job, attrs?: JobAttributes) => void = () => {};
 
-  public task(fn: (job: Job, attrs?: JobAttributes) => void, ...args: any) {
+  /**
+   * Register task function to run
+   *
+   * @param {(job: Job, attrs?: JobAttributes) => void} fn
+   * @param {...any} args
+   * @returns
+   * @memberof Job
+   */
+  public task(fn: (job: Job, attrs?: JobAttributes) => void, ...args: any): Job {
     if (typeof fn !== 'function') {
       throw new Error('Invalid type for task. Please use a function.');
     }
@@ -34,7 +49,13 @@ export class Job extends Subject<JobDescriptor> {
     return this;
   }
 
-  public next(value?: JobDescriptor | any) {
+  /**
+   * Next trigger on observable
+   *
+   * @param {(JobDescriptor | any)} [value]
+   * @memberof Job
+   */
+  public next(value?: JobDescriptor | any): void {
     if (value instanceof JobDescriptor) {
       this.set(value);
     } else {
@@ -44,7 +65,13 @@ export class Job extends Subject<JobDescriptor> {
     super.next(this.get());
   }
 
-  public error(erro: JobDescriptor | any) {
+  /**
+   * Observable error trigger
+   *
+   * @param {(JobDescriptor | any)} erro
+   * @memberof Job
+   */
+  public error(erro: JobDescriptor | any): void {
     if (erro instanceof JobDescriptor) {
       this.set(erro);
     } else {
@@ -54,24 +81,49 @@ export class Job extends Subject<JobDescriptor> {
     super.error(this.get());
   }
 
-  public complete() {
+  /**
+   * Complete observable
+   *
+   * @memberof Job
+   */
+  public complete(): void {
     this.set('complete', this.descriptor.value, this.descriptor.details);
     super.complete();
   }
 
-  public get() {
+  /**
+   * Get job descriptor
+   *
+   * @returns {JobDescriptor}
+   * @memberof Job
+   */
+  public get(): JobDescriptor {
     return JobDescriptor.create(this.descriptor);
   }
 
+  /**
+   * Set job options
+   *
+   * @param {(JobDescriptor | StatusDescriptor)} descriptor
+   * @param {*} [value]
+   * @param {JobAttributes} [detail]
+   * @memberof Job
+   */
   public set(
     descriptor: JobDescriptor | StatusDescriptor,
     value?: any,
-    detail?: any
-  ) {
+    detail?: JobAttributes
+  ): void {
     this.descriptor.set(descriptor, value, detail);
   }
 
-  public schedule() {
+  /**
+   * Schedule a job to run on an time interval
+   *
+   * @returns {Job}
+   * @memberof Job
+   */
+  public schedule(): Job {
     const scheduler = asyncScheduler;
 
     const delay = this.descriptor.details.delay || 0;
@@ -92,7 +144,7 @@ export class Job extends Subject<JobDescriptor> {
           }
 
           const period = state.descriptor.details.repeatInterval || -1;
-          this.schedule(state, period);
+          this.schedule(state, period as number);
         }
       },
       delay,
