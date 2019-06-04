@@ -1,18 +1,27 @@
-import { Observable, queueScheduler, Scheduler, from, Subject } from 'rxjs';
 import { cpus, freemem, totalmem } from 'os';
+import { from, queueScheduler, Observable, Scheduler, Subject } from 'rxjs';
 
+export function head<T>(collection: T[]) {
+  return collection[0];
+}
+
+export function foot<T>(collection: T[]) {
+  return collection[collection.length - 1];
+}
+
+// export const head = (array: any[]) => array[0];
 let prevTimes = getCpuTimes();
 
 export function getCpuTimes() {
   const processors = cpus();
   const times = {
-    user: 0,
-    sys: 0,
+    idle: 0,
     nice: 0,
-    idle: 0
+    sys: 0,
+    user: 0,
   };
 
-  processors.forEach((cpu) => {
+  processors.forEach(cpu => {
     times.user += cpu.times.user;
     times.sys += cpu.times.sys;
     times.nice += cpu.times.nice;
@@ -43,25 +52,29 @@ export interface IterableLike<T> {
   [Symbol.iterator]: () => Iterator<T> | IterableIterator<T>;
 }
 
-export function observableFromIterable<T>(
-  i: IterableLike<T>,
-  schedule: Scheduler
-): Observable<T> {
+// tslint:disable-next-line: max-line-length
+export function observableFromIterable<T>({ i, schedule }: { i: IterableLike<T>; schedule: Scheduler }): Observable<T> {
   return from(i, schedule);
 }
 
-export function observableFromSet<T>(
-  i: Set<T>,
-  schedule: Scheduler = queueScheduler
-): Observable<T> {
-  return observableFromIterable(i, schedule);
+export function observableFromSet<T>({
+  i,
+  schedule = queueScheduler,
+}: {
+  i: Set<T>;
+  schedule?: Scheduler;
+}): Observable<T> {
+  return observableFromIterable({ i, schedule });
 }
 
-export function observableFromMap<K, V>(
-  i: Map<K, V>,
-  schedule: Scheduler = queueScheduler
-): Observable<[K, V]> {
-  return observableFromIterable(i, schedule);
+export function observableFromMap<K, V>({
+  i,
+  schedule = queueScheduler,
+}: {
+  i: Map<K, V>;
+  schedule?: Scheduler;
+}): Observable<[K, V]> {
+  return observableFromIterable({ i, schedule });
 }
 
 export class ObservableMap<K, V> extends Map<K, V> {
@@ -125,7 +138,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
   }*/
 }
 
-export function isType(s: any,o: any) {
+export function isType(s: any, o: any) {
   // tslint:disable-next-line:triple-equals
   return typeof s == o;
 }
@@ -156,8 +169,6 @@ export function isBool(n: boolean) {
 
 export function isValue(n: any) {
   const type = typeof n;
-  // tslint:disable:triple-equals
-  return type == 'object'
-    ? !!(n && n['getDay']) :
-    (type == 'string' || type == 'number' || isBool(n));
+  // tslint:disable-next-line: max-line-length triple-equals
+  return type == 'object' ? !!(n && n['getDay']) : type == 'string' || type == 'number' || isBool(n);
 }

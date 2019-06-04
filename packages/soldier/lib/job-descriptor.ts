@@ -1,4 +1,4 @@
-import { JobAttributes, StatusDescriptor } from './typings';
+import { JobAttributes, StatusDescriptor, StatusType } from './typings';
 import { isString } from './utils';
 
 // tslint:disable-next-line:no-var-requires
@@ -21,17 +21,13 @@ export class JobDescriptor {
    * @returns
    * @memberof JobDescriptor
    */
-  public static create(
-    descriptor: JobDescriptor | StatusDescriptor,
-    value?: any,
-    detail?: JobAttributes
-  ) {
+  // tslint:disable-next-line: max-line-length
+  public static create(descriptor: JobDescriptor | StatusDescriptor, value?: any, detail?: JobAttributes) {
     const jobDescriptor = new JobDescriptor();
     jobDescriptor.set(descriptor, value, detail);
 
     return jobDescriptor;
   }
-
   public createdAt: Date = new Date();
   public updatedAt: Date = new Date();
 
@@ -41,7 +37,7 @@ export class JobDescriptor {
    * @type {StatusDescriptor}
    * @memberof JobDescriptor
    */
-  public status: StatusDescriptor = 'waiting';
+  public status: StatusDescriptor = StatusType.WAITING;
 
   /**
    * Current job data
@@ -59,11 +55,11 @@ export class JobDescriptor {
    */
   public details: JobAttributes = {
     data: {},
-    repeatInterval: -1,
     delay: 0,
     disable: false,
+    repeatInterval: -1,
     retry: 0,
-    timeout: 0
+    timeout: 0,
   };
 
   /**
@@ -74,11 +70,7 @@ export class JobDescriptor {
    * @param {JobAttributes} [detail]
    * @memberof JobDescriptor
    */
-  public set(
-    descriptor: JobDescriptor | StatusDescriptor,
-    value?: any,
-    detail?: JobAttributes
-  ) {
+  public set(descriptor: JobDescriptor | StatusDescriptor, value?: any, detail?: JobAttributes) {
     this.updatedAt = new Date();
 
     if (descriptor instanceof JobDescriptor) {

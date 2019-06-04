@@ -1,7 +1,7 @@
-import { Subject, asyncScheduler, SchedulerAction, Subscription } from 'rxjs';
+import { asyncScheduler, SchedulerAction, Subject, Subscription } from 'rxjs';
 
-import { StatusDescriptor, JobAttributes } from './typings';
 import { JobDescriptor } from './job-descriptor';
+import { JobAttributes, StatusDescriptor, StatusType } from './typings';
 
 /*export function TaskNoopOperation() {
   _job: Job;
@@ -19,7 +19,10 @@ TaskNoopOperation.prototype.onFinish = () => {};*/
  * @extends {Subject<JobDescriptor>}
  */
 export class Job extends Subject<JobDescriptor> {
-  public descriptor: JobDescriptor = JobDescriptor.create('waiting', null);
+  public descriptor: JobDescriptor = JobDescriptor.create(
+    StatusType.WAITING,
+    null
+  );
 
   // private _hooks = ['onInit', 'onChange', 'onFinish'];
   // tslint:disable-next-line:ban-types
@@ -38,7 +41,10 @@ export class Job extends Subject<JobDescriptor> {
    * @returns
    * @memberof Job
    */
-  public task(fn: (job: Job, attrs?: JobAttributes) => void, ...args: any): Job {
+  public task(
+    fn: (job: Job, attrs?: JobAttributes) => void,
+    ...args: any
+  ): Job {
     if (typeof fn !== 'function') {
       throw new Error('Invalid type for task. Please use a function.');
     }
@@ -59,7 +65,7 @@ export class Job extends Subject<JobDescriptor> {
     if (value instanceof JobDescriptor) {
       this.set(value);
     } else {
-      this.set('running', value);
+      this.set(StatusType.RUNNING, value);
     }
 
     super.next(this.get());
@@ -75,7 +81,7 @@ export class Job extends Subject<JobDescriptor> {
     if (erro instanceof JobDescriptor) {
       this.set(erro);
     } else {
-      this.set('failed', erro);
+      this.set(StatusType.FAILED, erro);
     }
 
     super.error(this.get());
@@ -87,7 +93,11 @@ export class Job extends Subject<JobDescriptor> {
    * @memberof Job
    */
   public complete(): void {
-    this.set('complete', this.descriptor.value, this.descriptor.details);
+    this.set(
+      StatusType.COMPLETE,
+      this.descriptor.value,
+      this.descriptor.details
+    );
     super.complete();
   }
 
@@ -98,6 +108,7 @@ export class Job extends Subject<JobDescriptor> {
    * @memberof Job
    */
   public get(): JobDescriptor {
+    console.log(this.descriptor);
     return JobDescriptor.create(this.descriptor);
   }
 
