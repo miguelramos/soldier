@@ -1,140 +1,113 @@
-import { Subject, Observable } from 'rxjs';
-import { takeUntil, tap, timeout, retry } from 'rxjs/operators';
+import crypto from 'crypto';
+import { defer, from, Observable, Operator } from 'rxjs';
+import { flatMap, map } from 'rxjs/operators';
 
 import { Job } from './job';
-import { JobAttributes } from './typings';
-import { ObservableMap, isNumber } from './utils';
 import { JobDescriptor } from './job-descriptor';
+import { Pipe, StatusType } from './typings';
+import { head } from './utils';
 
-/**
- * Pipeline register and control jobs
- *
- * @export
- * @class Pipeline
- */
-export class Pipeline {
-  /**
-   * Subject observable to perform actions
-   * on pipeline and job.
-   *
-   * @private
-   * @memberof Pipeline
-   */
-  private subject$ = new Subject();
+/** @internal */
+export class Pipeline<T> extends Observable<T> {
+  private _queues: Map<string, [Pipe, Job]> = new Map();
 
-  /**
-   * Memory repo for jobs
-   * 
-   * TODO: Convert in adaptor to future integrations
-   *
-   * @private
-   * @memberof Pipeline
-   */
-  private pipes = new ObservableMap<string, Job>();
+  public lift<R>(operator: Operator<T, R>) {
+    const observable = new Pipeline<R>();
 
-  /**
-   * Register and create job to run
-   *
-   * @param {string} key
-   * @param {(job: Job, attrs?: JobAttributes) => void} worker
-   * @returns {ObservableMap<string, Job>}
-   * @memberof Pipeline
-   */
-  public queue(
-    key: string,
-    worker: (job: Job, attrs?: JobAttributes) => void
-  ): ObservableMap<string, Job> {
-    return this.pipes.set(key, this.createJob(worker));
+    observable.source = this;
+    observable.operator = operator;
+
+    return observable;
   }
 
-  /**
-   * Get a registered job
-   *
-   * @param {string} key
-   * @returns {(Job|undefined)}
-   * @memberof Pipeline
-   */
-  public get(key: string): Job|undefined {
-    return this.pipes.get(key);
+  public setQueue(id: string, pipe: [Pipe, Job]) {
+    this._queues.set(id, pipe);
   }
 
-  /**
-   * Dispatch a job to do is work
-   *
-   * @param {string} key
-   * @param {JobAttributes} [attrs]
-   * @returns {Observable<JobDescriptor>}
-   * @memberof Pipeline
-   */
-  public dispatch(key: string, attrs?: JobAttributes): Observable<JobDescriptor> {
-    const job = this.pipes.get(key);
+  public getQueue(id: string) {
+    return this._queues.get(id);
+  }
 
-    const settings: JobAttributes = Object.assign(
-      {},
-      {
-        delay: 0,
-        disable: false,
-        data: {},
-        repeatInterval: -1,
-        retry: 0,
-        timeout: 0
-      },
-      attrs
-    );
+  public hasQueue(id: string) {
+    return this._queues.has(id);
+  }
 
-    if (job && settings.disable !== true) {
-      job.set(JobDescriptor.create('waiting', settings.data, settings));
+  public getQueueID(name: string) {
+    return [...this._queues.values()].reduce((acc: null | string, current) => {
+      const pipe = head(current) as Pipe;
 
-      const observable = job.schedule().pipe(
-        retry(settings.retry),
-        tap(() => job.operation.call(job.operation, job, settings)),
-        takeUntil(this.subject$)
-      );
-
-      if (isNumber(settings.repeatInterval as number) && (settings.repeatInterval as number) < 0) {
-        observable.pipe(
-          timeout((settings.timeout as number) + (settings.delay as number))
-        );
+      if (pipe.name === name) {
+        acc = pipe.id as string;
       }
 
-      return observable;
-    } else if (job) {
-      return job.asObservable();
-    }
+      return acc;
+    }, null);
+  }
+}
 
-    throw new Error(
-      `Job: ${key} is not queued. Please assign to a queue first`
+export const pipeline = (source: Pipe[]) => {
+  const { setPrototypeOf } = Object;
+
+  const source$ = defer(() => from(source));
+
+  setPrototypeOf(source$, new Pipeline<Pipe>());
+
+  source.forEach(item => {
+    const job = new Job().task(item.task);
+
+    item.id = crypto.randomBytes(16).toString('hex');
+    item.attributes = Object.assign(
+      {},
+      {
+        data: {},
+        delay: 0,
+        disable: false,
+        repeatInterval: -1,
+        retry: 0,
+        timeout: 0,
+      },
+      item.attributes,
+    );
+
+    job.set(JobDescriptor.create(StatusType.WAITING, null, item.attributes));
+
+    (source$ as Pipeline<Pipe>).setQueue(item.id, [item, job]);
+  });
+
+  return source$ as Pipeline<Pipe>;
+};
+
+export const trigger: any = (key: string, _data?: unknown) => (source$: Observable<Pipe>) => {
+  const [attr = null, job = null] = getAttrAndJob(source$, key) || [];
+
+  if (attr && job) {
+    return source$.pipe(
+      flatMap(_pipes =>
+        from(attr.deps).pipe(
+          map(deps => {
+            console.log(deps);
+            return deps;
+          }),
+        ),
+      ),
     );
   }
+  /*return source$.pipe(
+    flatMap(pipe => {
+      debugger;
+      return pipe && pipe.job
+        ? pipe.job.schedule().pipe(
+            retry(pipe.attributes.retry),
+            // tslint:disable-next-line: no-empty
+            tap(() => (pipe.job ? pipe.job.operation(pipe.job, pipe.attributes) : () => {})),
+          )
+        : of();
+    }),
+  );*/
+  return source$ as Pipeline<Pipe>;
+};
 
-  /**
-   * Get a Map of registered queues
-   *
-   * @returns {Subject<IterableIterator<[string, Job]>>}
-   * @memberof Pipeline
-   */
-  public queues(): Subject<IterableIterator<[string, Job]>> {
-    return this.pipes.listener();
-  }
-
-  /**
-   * Stop queue to perform job
-   *
-   * @memberof Pipeline
-   */
-  public stop(): void {
-    this.subject$.next(true);
-  }
-
-  /**
-   * Creates a job
-   *
-   * @private
-   * @param {(job: Job, attrs?: JobAttributes) => void} task
-   * @returns {Job}
-   * @memberof Pipeline
-   */
-  private createJob(task: (job: Job, attrs?: JobAttributes) => void): Job {
-    return new Job().task(task);
-  }
+function getAttrAndJob(source: Pipeline<Pipe> | Observable<Pipe>, key: string) {
+  const queueID = (source as Pipeline<Pipe>).getQueueID(key);
+  return queueID ? (source as Pipeline<Pipe>).getQueue(queueID) : (source as Pipeline<Pipe>).getQueue(key);
 }
