@@ -1,13 +1,14 @@
 import crypto from 'crypto';
-import { defer, from, of, Observable, Operator } from 'rxjs';
+import { defer, from, Observable, Operator } from 'rxjs';
+import { flatMap, map } from 'rxjs/operators';
 
-// import { flatMap, retry, tap } from 'rxjs/operators';
 import { Job } from './job';
 import { JobDescriptor } from './job-descriptor';
 import { Pipe, StatusType } from './typings';
 import { head } from './utils';
 
-class Pipeline<T> extends Observable<T> {
+/** @internal */
+export class Pipeline<T> extends Observable<T> {
   private _queues: Map<string, [Pipe, Job]> = new Map();
 
   public lift<R>(operator: Operator<T, R>) {
@@ -76,8 +77,21 @@ export const pipeline = (source: Pipe[]) => {
   return source$ as Pipeline<Pipe>;
 };
 
-export const trigger = (_task: string, _data?: unknown) => (source$: Observable<Pipe>) => {
-  // console.log(source$, task);
+export const trigger: any = (key: string, _data?: unknown) => (source$: Observable<Pipe>) => {
+  const [attr = null, job = null] = getAttrAndJob(source$, key) || [];
+
+  if (attr && job) {
+    return source$.pipe(
+      flatMap(_pipes =>
+        from(attr.deps).pipe(
+          map(deps => {
+            console.log(deps);
+            return deps;
+          }),
+        ),
+      ),
+    );
+  }
   /*return source$.pipe(
     flatMap(pipe => {
       debugger;
@@ -90,5 +104,10 @@ export const trigger = (_task: string, _data?: unknown) => (source$: Observable<
         : of();
     }),
   );*/
-  return source$;
+  return source$ as Pipeline<Pipe>;
 };
+
+function getAttrAndJob(source: Pipeline<Pipe> | Observable<Pipe>, key: string) {
+  const queueID = (source as Pipeline<Pipe>).getQueueID(key);
+  return queueID ? (source as Pipeline<Pipe>).getQueue(queueID) : (source as Pipeline<Pipe>).getQueue(key);
+}

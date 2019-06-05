@@ -1,10 +1,8 @@
 import { pipeline, trigger } from './pipeline';
 
-const pipes = pipeline([
+const pipeOne = pipeline([
   {
-    attributes: {
-      repeatInterval: 1000,
-    },
+    attributes: {},
     deps: [],
     name: '[TASK-ONE] First Task',
     task: () => {
@@ -21,10 +19,19 @@ const pipes = pipeline([
   },
 ]);
 
-pipes.getQueueID('task one');
+const pipeTwo = pipeline([
+  {
+    attributes: {
+      repeatInterval: 1000,
+    },
+    deps: [{ provider: pipeOne, task: '[TASK-ONE] First Task' }, { provider: pipeOne, task: '[TASK-TWO] Second task' }],
+    name: '[TASK-THREE] Third Task',
+    task: () => {
+      console.log('task three');
+    },
+  },
+]);
 
-/*pipes
-  .pipe(
-    trigger('task one')
-  )
-  .subscribe();*/
+// pipes.getQueueID('[TASK-ONE] First Task');
+
+pipeTwo.pipe(trigger('[TASK-THREE] Third Task')).subscribe();

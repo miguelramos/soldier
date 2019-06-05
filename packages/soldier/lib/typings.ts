@@ -1,4 +1,5 @@
-import { Job } from './job';
+import { Observable } from 'rxjs';
+import { Pipeline } from './pipeline';
 
 export enum StatusType {
   COMPLETE = 'complete',
@@ -20,7 +21,7 @@ export interface JobAttributes {
 
 export interface Pipe {
   attributes: JobAttributes;
-  deps: string[];
+  deps: Array<{ provider: Pipeline<Pipe> | Observable<Pipe>; task: string }>;
   name: string;
   task: () => void;
   id?: string;
